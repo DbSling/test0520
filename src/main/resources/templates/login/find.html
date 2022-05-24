@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+    <section th:replace="~{layout/frag/js :: js}"></section>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <title>비번찾기</title>
+</head>
+<body>
+<div class="middle-box" style="text-align: center; width: 50%; display: table">
+    <div>
+        <div class="m-b p-0">
+            <h2>이메일/비밀번호 찾기</h2>
+        </div>
+        <form class="m-t" name="form" method="post" action="/finduser" role="form">
+            <div>
+                <a>이메일</a>
+                <input type="email" name="email">
+            </div>
+            <div style="text-align: center">
+                <div class="text-left">
+                    <a>비밀번호</a><br>
+                    <input type="password" id="password1" name="password">
+                </div>
+                <div class="text-left">
+                    <a>비밀번호 확인</a><br>
+                    <input type="password" id="password2">
+                </div>
+            </div>
+            <br><p id="errorBox"></p><br><br><br>
+            <button type="button" id="find-btn">변경</button>
+        </form>
+    </div>
+</div>
+<script>
+    $('#find-btn').on('click',(e)=>{
+        const result = $.trim($("input[type=password]").val());
+        const result2 = $.trim($("input[type=email]").val());
+        window.console.info(result+"+"+result2);
+        if (!result||!result2) {
+            $("#errorBox").text("다시한번 확인 해주세요.");
+            return;
+        }
+        if($("#password1").val() != $("#password2").val()){
+            $("#errorBox").text("비밀번호가 일치하지 않습니다.");
+            return;
+        }
+        $(form).submit();
+        $('#find-btn').off('click');
+    })
+    function f() {
+        if('${msg}' != undefined || "${msg}" != ""){
+            alert("${msg}");
+        }
+
+    }
+</script>
+</body>
+</html>
