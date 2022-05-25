@@ -1,10 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+    <section th:replace="~{layout/frag/js :: js}"></section>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <title>홈.home.홈</title>
 </head>
 <body>
-
+<a  href="/myPage"><button type="button">내정보</button></a>
+<a  href="/logOut"><button type="button">로그아웃</button></a>
+<p th:if="${msg.length()>0}" th:text="${msg}"></p>
 </body>
 </html>

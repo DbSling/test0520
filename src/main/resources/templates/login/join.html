@@ -107,7 +107,7 @@
             phoneNum: $("#phone").val().substr(0, 3) + "-" + $("#phone").val().substr(3, 4) + "-" + $("#phone").val().substr(7, 4),
             password: $("#password1").val(),
             eMail: $("#eMail").val(),
-            address: $("#sample6_address").val() + " " + $("#sample6_detailAddress").val()
+            address: $("#sample6_address").val() + " // " + $("#sample6_detailAddress").val()
         };
         window.console.info(data);
         $.post({

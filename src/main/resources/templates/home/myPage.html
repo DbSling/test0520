@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+    <section th:replace="~{layout/frag/js :: js}"></section>
+    <title>수정</title>
+</head>
+<body>
+<section layout:fragment="content" style="text-align: center" th:object="user">
+    <div class="middle-box text-center">
+        <div class="col-lg-10">
+            <h1>마이 페이지</h1>
+        </div>
+        <div class="col-md-10">
+            <div><input type="text" id="name" th:placeholder="*{name}"></div>
+            <div><input type="text" id="phone"
+                        oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                        th:placeholder='*{phoneNum +"(전화번호 \"-\" 없이 입력해 주세요.)"}'></div>
+            <div><input type="text" id="eMail" th:value="*{eMail}" readonly></div>
+            <div class="text-left">
+                <input type="password" id="password1" placeholder="비밀번호">
+                <input type="password" id="password2" placeholder="비밀번호 확인">
+            </div>
+            <br>
+            <p id="errorBox"></p><br><br>
+            <div>
+                <div class="col-md-2 row-3">주소</div>
+                <div class="col-md-8">
+                    <!--<input type="text" id="sample6_postcode" placeholder="우편번호">-->
+                    <!--<input type="text" id="sample6_extraAddress" placeholder="참고항목">-->
+                    <input type="text" id="sample6_address"
+                           th:placeholder='${#strings.arraySplit(user.address,"//")[0]}' readonly>
+                    <input type="text" id="sample6_detailAddress"
+                           th:placeholder='${#strings.arraySplit(user.address,"//")[1]}'>
+                    <input type="button" onclick="sample6_execDaumPostcode()" value="우편번호 찾기">
+                </div>
+            </div>
+        </div>
+        <br><br><br><br><br>
+        <div style="text-align: right;">
+            <a id="join-btn">
+                <input type="button" class="m-r-lg" value="가입">
+            </a>
+        </div>
+        </form>
+    </div>
+</section>
+<script>
+    function sample6_execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function (data) {
+
+                var addr = '';
+                var extraAddr = '';
+
+                if (data.userSelectedType === 'R') {
+                    addr = data.roadAddress;
+                } else {
+                    addr = data.jibunAddress;
+                }
+
+                if (data.userSelectedType === 'R') {
+                    if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+                        extraAddr += data.bname;
+                    }
+                    if (data.buildingName !== '' && data.apartment === 'Y') {
+                        extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                    }
+                    if (extraAddr !== '') {
+                        extraAddr = ' (' + extraAddr + ')';
+                    }
+                }
+
+                document.getElementById("sample6_address").value = addr + " " + extraAddr;
+                document.getElementById("sample6_detailAddress").focus();
+            }
+        }).open();
+    }
+
+    $("#sample6_address").keyup(function () {
+        sample6_execDaumPostcode();
+    })
+</script>
+< /body>
+< /html>

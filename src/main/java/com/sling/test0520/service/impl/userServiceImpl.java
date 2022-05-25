@@ -37,14 +37,25 @@ public class userServiceImpl extends GenericServiceImpl<User, Long, UserReposito
 
     //비밀번호 찾기
     @Override
-    public User updUser(User user){
-        if(StringUtils.hasText(user.getEMail()))return null;
+    public User updUser(Login user){
+        if(!StringUtils.hasText(user.getEMail())){
+            return null;
+        }
         User user2 = repository.findByEMail(user.getEMail());
-        user2.setPassword(user.getPassword());
-        try{update(user2);}
-        catch (Exception e){
+        try{
+            user2.setPassword(user.getPassword());
+            update(user2);
+        }catch (Exception e){
             return null;
         }
         return user2;
+    }
+
+    //마이페이지 진입시 기본 데이터 구축
+    @Override
+    public User findById(String id){
+        if(!StringUtils.hasText(id))return null;
+
+        return repository.findById(id);
     }
 }

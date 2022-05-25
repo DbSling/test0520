@@ -20,99 +20,140 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static com.sling.test0520.support.security.SecurityInterceptor.ID_COOKIE_NAME;
 
 @Controller
 //@SessionAttributes("login")
 @RequiredArgsConstructor
 public class UserWeb {
-    private static final String VIEW_NAME = "login/loginHome";
+
+    private static final String VIEW_LOGIN = "login/loginHome";
+    private static final String VIEW_HOME = "home/home";
+
     Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UserService userSvc;
 
     @GetMapping("/")
-    public String userInfoMatch(@RequestParam(required = false) String userData, Model md) {
+    public String userLogin(@RequestParam(required = false) String userData, Model md, HttpServletRequest req) {
         md.addAttribute("login", new User());
-        if (userData != null) {
-            md.addAttribute("notlogin", true);
+        if(ObjectUtils.isEmpty(req.getCookies())) {
+            if (userData != null) {
+                md.addAttribute("notlogin", true);
+            }
+            return VIEW_LOGIN;
         }
-        return VIEW_NAME;
+        //로그인 했을 경우
+        return VIEW_HOME;
     }
 
     @PostMapping("/")
     public String loginSubmit(@ModelAttribute @Valid Login user, BindingResult errors, SessionStatus state, HttpServletRequest req, HttpServletResponse res)
             throws UnsupportedEncodingException {
-       logger.info("user::{}", user);
-        if (ObjectUtils.isEmpty(user))  {
+        if (ObjectUtils.isEmpty(user)) {
             errors.reject("login", "이메일 또는 패스워드가 정확하지 않습니다");
-            return VIEW_NAME;
+            return VIEW_LOGIN;
         }
 
         User userInfo = userSvc.userLogin(user);
 
         if (userInfo == null) {
             errors.reject("login", "이메일 또는 패스워드가 정확하지 않습니다");
-            return VIEW_NAME;
+            return VIEW_LOGIN;
         } else {
             state.setComplete();
-            Cookie idCookie = new Cookie(SecurityInterceptor.ID_COOKIE_NAME, "" + userInfo.getId());
-            Cookie nameCookie = new Cookie(SecurityInterceptor.NAME_COOKIE_NAME, URLEncoder.encode(userInfo.getName(), "utf-8"));
+            Cookie idCookie = new Cookie(ID_COOKIE_NAME, "" + userInfo.getId());
+            Cookie nameCookie = new Cookie(SecurityInterceptor.NAME_COOKIE_NAME, URLEncoder.encode(userInfo.getName(), "UTF-8"));
             Cookie ipCookie = new Cookie(SecurityInterceptor.IP_COOKIE_NAME, req.getRemoteAddr());
-            logger.info("q1w2e3" + req.getRemoteUser() + ", " + req.getRequestedSessionId() + ", " + req.getRequestURI() + ", " + req.getRemoteHost());
             idCookie.setPath("/");
             nameCookie.setPath("/");
             ipCookie.setPath("/");
-            logger.info("w2e3r4" + idCookie);
             res.addCookie(idCookie);
             res.addCookie(nameCookie);
             res.addCookie(ipCookie);
 
             logger.debug("Logged in : " + userInfo.toString() + " / " + req.getRemoteAddr());
 
-            return "login/home";
+            return VIEW_HOME;
         }
     }
 
+    //이건 뭐지?
     //@GetMapping("/home")
     //public String home() {
     //    return "home";
     //}
 
+    //회원 가입 페이지 이동
     @GetMapping("/join")
     public String join() {
         return "login/join";
     }
 
+
+    //회원가입 버튼 클릭
     @PostMapping("/saveUser")
     @ResponseBody
-    public String saveUser(@ModelAttribute User user){
+    public String saveUser(@ModelAttribute User user) {
         user.setCreated(LocalDateTime.now());
         user.setCreatedBy(user);
-        if(ObjectUtils.isEmpty(user)) return "회원가입에 실패하였습니다.";
+        if (ObjectUtils.isEmpty(user)) return "회원가입에 실패하였습니다.";
 
         String saveMsg = userSvc.saveUser(user);
 
         return saveMsg;
     }
+
+    //비밀번호 변경 페이지로 이동
     @GetMapping("/find")
-    public String findPage(){
+    public String findPage(Model md) {
+        md.addAttribute("login", new User());
         return "login/find";
     }
 
+    //변경페이지에서 비밀번호 수정
     @PostMapping("/finduser")
-    public String findUser(@ModelAttribute User user, Model md){
-        if(ObjectUtils.isEmpty(user)){
-            md.addAttribute("msg","다시 시도해주세요.");
+    public String findUser(@ModelAttribute Login user, BindingResult err) {
+        //데이터가 안넘어 올시
+        if (ObjectUtils.isEmpty(user)) {
+            err.reject("login", "데이터가 넘어가지 않음.");
             return "login/find";
         }
         User user2 = this.userSvc.updUser(user);
-        if(ObjectUtils.isEmpty(user2)) {
-            md.addAttribute("msg","ERROR");
+
+        //일치하는 데이터가 없을 시
+        if (ObjectUtils.isEmpty(user2)) {
+            err.reject("login", "잘못된 데이터 입력.");
             return "login/find";
         }
-        return VIEW_NAME;
+        return VIEW_LOGIN;
     }
 
+    //로그아웃
+    @GetMapping("/logOut")
+    public String logout(HttpServletRequest req) {
+        for (Cookie c : req.getCookies()) {
+            c.setMaxAge(0);
+        }
+        return "redirect:";
+    }
+
+    //정보 수정
+    @GetMapping("/myPage")
+    public String myPage(HttpServletRequest req, Model md) {
+        User user = null;
+        for (Cookie c : req.getCookies()) {
+            if (c.getName().equals(ID_COOKIE_NAME)) {
+                user = this.userSvc.findById(c.getValue());
+            }
+        }
+        if (ObjectUtils.isEmpty(user)) {
+            md.addAttribute("msg","정기점검");
+            return VIEW_HOME;
+        }
+        md.addAttribute("User", user);
+        return "home/myPage";
+    }
 }

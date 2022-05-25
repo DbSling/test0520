@@ -7,15 +7,15 @@
     <title>비번찾기</title>
 </head>
 <body>
-<div class="middle-box" style="text-align: center; width: 50%; display: table">
+<div class="middle-box" style="text-align: center; width: 100%; display: table" th:autocomplete="off">
     <div>
         <div class="m-b p-0">
             <h2>이메일/비밀번호 찾기</h2>
         </div>
         <form class="m-t" name="form" method="post" action="/finduser" role="form">
             <div>
-                <a>이메일</a>
-                <input type="email" name="email">
+                <a >이메일</a><br>
+                <input type="email" name="eMail">
             </div>
             <div style="text-align: center">
                 <div class="text-left">
@@ -27,7 +27,9 @@
                     <input type="password" id="password2">
                 </div>
             </div>
-            <br><p id="errorBox"></p><br><br><br>
+            <p th:if="${#fields.hasErrors('login')}" th:errorclass="loginerrormsg" th:errors="${login}"></p>
+            <p class="loginerrormsg">
+            </p>
             <button type="button" id="find-btn">변경</button>
         </form>
     </div>
@@ -48,12 +50,6 @@
         $(form).submit();
         $('#find-btn').off('click');
     })
-    function f() {
-        if('${msg}' != undefined || "${msg}" != ""){
-            alert("${msg}");
-        }
-
-    }
 </script>
 </body>
 </html>
