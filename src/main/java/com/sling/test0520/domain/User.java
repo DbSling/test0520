@@ -34,9 +34,10 @@ public class User extends AuditEntity {
     String phoneNum;
 
     @Column(length = 20, nullable = false)
+    @NotEmpty
     String password;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 40, nullable = false)
     String address;
 
 
