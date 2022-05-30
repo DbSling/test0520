@@ -2,37 +2,38 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
-    <section th:replace="~{layout/frag/js :: js}"></section>
     <title>로그인!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</title>
+    <section th:replace="~{layout/frag/css :: css}"></section>
 </head>
-<body>
+<body class="white-bg">
 <section layout:fragment="content" style="text-align: center">
     <div class="middle-box text-center">
-        <div class="col-lg-10">
-            <h1>로그인</h1>
+        <div class="col-lg">
+            <h2>로그인</h2>
         </div>
-        <div class="col-md-12">
+        <div class="col-md">
             <div class="text-center" >
                 <form class="" role="form" method="post" id="login" >
                     <div class="form-group">
-                        <input type="text" placeholder="이메일" name="eMail" class=""/>
+                        <input type="text" placeholder="이메일" name="email" class="form-control"/>
                     </div>
                     <div class="form-group">
-                        <input type="password" placeholder="비밀번호" name="password" class=""/>
+                        <input type="password" placeholder="비밀번호" name="password" class="form-control"/>
                     </div>
                     <p th:if="${#fields.hasErrors('login')}" th:errorclass="loginerrormsg" th:errors="${login}"></p>
                     <p class="loginerrormsg" th:if="${notlogin==true}">
                     </p>
                 </form>
                 <div class="text-center">
-                    <button type="button" id="login-btn" class="m-r">로그인</button><br>
-                    <button type="button" id="join-btn" class="m-l">회원가입</button><br>
+                    <button type="button" id="login-btn" class="full-width btn btn-success m-b">로그인</button><br>
+                    <button type="button" id="join-btn" class="full-width btn btn-success m-b">회원가입</button><br>
                     <a class="board-body-line" href="/find">아이디 / 비밀번호 찾기</a>
                 </div>
             </div>
         </div>
     </div>
 </section>
+<section th:replace="~{layout/frag/js :: js}"></section>
 <script layout:fragment="script">
     $(function () {
         $(document).on('click','#login-btn',(e)=> {
@@ -42,7 +43,9 @@
             windowOpen("/join","join",500,450);
         });
     });
-
+    window.onkeydown=function () {
+        if(event.keyCode=="13") $('#login').submit();
+    }
 </script>
 </body>
 </html>

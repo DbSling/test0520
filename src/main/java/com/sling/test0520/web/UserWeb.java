@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
@@ -25,7 +26,6 @@ import java.time.LocalDateTime;
 import static com.sling.test0520.support.security.SecurityInterceptor.ID_COOKIE_NAME;
 
 @Controller
-//@SessionAttributes("login")
 @RequiredArgsConstructor
 public class UserWeb {
 
@@ -37,12 +37,10 @@ public class UserWeb {
     private final UserService userSvc;
 
     @GetMapping("/")
-    public String userLogin(@RequestParam(required = false) String userData, Model md, HttpServletRequest req) {
+    public String userLogin(Model md, HttpServletRequest req) {
         md.addAttribute("login", new User());
         if(ObjectUtils.isEmpty(req.getCookies())) {
-            if (userData != null) {
-                md.addAttribute("notlogin", true);
-            }
+            md.addAttribute("notlogin", true);
             return VIEW_LOGIN;
         }
         //로그인 했을 경우
@@ -52,8 +50,8 @@ public class UserWeb {
     @PostMapping("/")
     public String loginSubmit(@ModelAttribute @Valid Login user, BindingResult errors, SessionStatus state, HttpServletRequest req, HttpServletResponse res)
             throws UnsupportedEncodingException {
-        if (ObjectUtils.isEmpty(user)) {
-            errors.reject("login", "이메일 또는 패스워드가 정확하지 않습니다");
+        if (!StringUtils.hasText(user.getEmail())) {
+            errors.reject("login", "입력 부탁드립니다.");
             return VIEW_LOGIN;
         }
 
@@ -62,29 +60,23 @@ public class UserWeb {
         if (userInfo == null) {
             errors.reject("login", "이메일 또는 패스워드가 정확하지 않습니다");
             return VIEW_LOGIN;
-        } else {
-            state.setComplete();
-            Cookie idCookie = new Cookie(ID_COOKIE_NAME, "" + userInfo.getId());
-            Cookie nameCookie = new Cookie(SecurityInterceptor.NAME_COOKIE_NAME, URLEncoder.encode(userInfo.getName(), "UTF-8"));
-            Cookie ipCookie = new Cookie(SecurityInterceptor.IP_COOKIE_NAME, req.getRemoteAddr());
-            idCookie.setPath("/");
-            nameCookie.setPath("/");
-            ipCookie.setPath("/");
-            res.addCookie(idCookie);
-            res.addCookie(nameCookie);
-            res.addCookie(ipCookie);
-
-            logger.debug("Logged in : " + userInfo.toString() + " / " + req.getRemoteAddr());
-
-            return VIEW_HOME;
         }
-    }
+        state.setComplete();
+        Cookie idCookie = new Cookie(ID_COOKIE_NAME, "" + userInfo.getId());
+        Cookie nameCookie = new Cookie(SecurityInterceptor.NAME_COOKIE_NAME, URLEncoder.encode(userInfo.getName(), "UTF-8"));
+        Cookie ipCookie = new Cookie(SecurityInterceptor.IP_COOKIE_NAME, req.getRemoteAddr());
+        idCookie.setPath("/");
+        nameCookie.setPath("/");
+        ipCookie.setPath("/");
+        res.addCookie(idCookie);
+        res.addCookie(nameCookie);
+        res.addCookie(ipCookie);
 
-    //이건 뭐지?
-    //@GetMapping("/home")
-    //public String home() {
-    //    return "home";
-    //}
+        logger.debug("Logged in : " + userInfo.toString() + " / " + req.getRemoteAddr());
+
+        return VIEW_HOME;
+
+    }
 
     //회원 가입 페이지 이동
     @GetMapping("/join")
@@ -96,14 +88,12 @@ public class UserWeb {
     //회원가입 버튼 클릭
     @PostMapping("/saveUser")
     @ResponseBody
-    public String saveUser(@ModelAttribute User user) {
+    public String saveUser(@RequestBody User user) {
         user.setCreated(LocalDateTime.now());
         user.setCreatedBy(user);
         if (ObjectUtils.isEmpty(user)) return "회원가입에 실패하였습니다.";
 
-        String saveMsg = userSvc.saveUser(user);
-
-        return saveMsg;
+        return userSvc.saveUser(user);
     }
 
     //비밀번호 변경 페이지로 이동
@@ -116,12 +106,13 @@ public class UserWeb {
     //변경페이지에서 비밀번호 수정
     @PostMapping("/finduser")
     public String findUser(@ModelAttribute Login user, BindingResult err) {
-        //데이터가 안넘어 올시
-        if (ObjectUtils.isEmpty(user)) {
-            err.reject("login", "데이터가 넘어가지 않음.");
+        err.reject("login","비밀번호가 수정 되었습니다.");
+        //이메일 입력안했을시
+        /*if (!StringUtils.hasText(user.getEmail())) {
+            err.reject("login", "이메일을 입력해주세요.");
             return "login/find";
-        }
-        User user2 = this.userSvc.updUser(user);
+        }*/
+        User user2 = this.userSvc.updPassword(user);
 
         //일치하는 데이터가 없을 시
         if (ObjectUtils.isEmpty(user2)) {
@@ -133,27 +124,55 @@ public class UserWeb {
 
     //로그아웃
     @GetMapping("/logOut")
-    public String logout(HttpServletRequest req) {
+    public String logout(HttpServletRequest req,HttpServletResponse res) {
         for (Cookie c : req.getCookies()) {
             c.setMaxAge(0);
+            res.addCookie(c);
         }
         return "redirect:";
     }
 
     //정보 수정
     @GetMapping("/myPage")
-    public String myPage(HttpServletRequest req, Model md) {
-        User user = null;
-        for (Cookie c : req.getCookies()) {
-            if (c.getName().equals(ID_COOKIE_NAME)) {
-                user = this.userSvc.findById(c.getValue());
-            }
-        }
+    public String myPage(Model md, HttpServletRequest req) {
+        User user = this.userSvc.findMyPage(callCookie(req));
+        //쿠키가 저장이 안되었거나 값이 잘 못 저장 되었을 때
         if (ObjectUtils.isEmpty(user)) {
             md.addAttribute("msg","정기점검");
             return VIEW_HOME;
         }
         md.addAttribute("User", user);
         return "home/myPage";
+    }
+
+    //myPage에서 저장버튼 클릭
+    @PostMapping("/updUser")
+    @ResponseBody
+    public String updUser(@RequestBody User user){
+        /*if(!StringUtils.hasText(user.getEmail())){
+            return "데이터가 없다!!!";
+        }*/
+        return userSvc.saveUser(user);
+    }
+
+    //쿠키에 저장 되어있는 회원 고유아이디 호출
+    public Long callCookie(HttpServletRequest req){
+
+        for (Cookie c : req.getCookies()) {
+            if (c.getName().equals(ID_COOKIE_NAME)) {
+                return Long.valueOf(c.getValue());
+            }
+        }
+        return null;
+    }
+
+    //이메일찾기
+    @GetMapping("/findMyEmail")
+    @ResponseBody
+    public String findMyEmail(@RequestBody User user){
+        if(ObjectUtils.isEmpty(user)){
+            return null;
+        }
+        return userSvc.findMyEmail(user.getName(),user.getPhoneNum());
     }
 }

@@ -12,7 +12,7 @@ public class Login {
 	int id;
 	
 	@NotEmpty
-	String eMail;
+	String email;
 	
 	@NotEmpty
 	String password;

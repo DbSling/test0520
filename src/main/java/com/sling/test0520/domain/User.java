@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -16,12 +17,15 @@ import javax.validation.constraints.NotEmpty;
 @EqualsAndHashCode(of = {}, callSuper = true)
 @ToString(callSuper = true, of = {})
 @NoArgsConstructor
+@DynamicUpdate
 public class User extends AuditEntity {
+
 
     @Column(length = 30, nullable = false)
     @NotEmpty
     @Email
-    String eMail;
+    String email;
+
 
     @Column(length = 10, nullable = false)
     String name;
@@ -30,10 +34,9 @@ public class User extends AuditEntity {
     String phoneNum;
 
     @Column(length = 20, nullable = false)
-    @NotEmpty
     String password;
 
-    @Column(length = 40, nullable = false)
+    @Column(length = 100, nullable = false)
     String address;
 
 
@@ -41,7 +44,6 @@ public class User extends AuditEntity {
         this.id = id;
     }
 
-    //파라메타 선정기준?
     public User(long id, String name) {
         this.id = id;
         this.name = name;

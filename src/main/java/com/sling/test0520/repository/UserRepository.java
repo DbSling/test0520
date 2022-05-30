@@ -5,12 +5,15 @@ import com.sling.test0520.domain.User;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 public interface UserRepository extends BaseRepository<User,Long>{
 
-    @Query("select u from User u where u.eMail = ?1")
-    User findByEMail(String eMail);
+    @Query("select u from User u where u.email = ?1")
+    User findByEMail(String email);
 
-    @Query("select u.id,u.eMail,u.address,u.name,u.phoneNum from User u where u.id = ?1")
-    User findById(String id);
+    User findAllById(Long id);
+
+    @Query("select u.email from User u where u.name = ?1 and u.phoneNum =?2")
+    String findEmailByNameAndPhoneNum(String name, String phone);
 }

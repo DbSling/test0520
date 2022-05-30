@@ -12,10 +12,21 @@
         <div class="m-b p-0">
             <h2>이메일/비밀번호 찾기</h2>
         </div>
+        <div class="m-t" id="upside">
+            <div style="text-align: center">
+                <a>이름</a><br>
+                <input type="text" name="name" id="name">
+            </div>
+            <div>
+                <a>전화번호</a><br>
+                <input type="text" id="phoneNum" placeholder="전화번호를 입력해 주세요.">
+            </div>
+            <p class="message">이름과 전번을 입력하고 enter키를 누르시면 밑에창에 eMail이 출력됩니다.</p>
+        </div>
         <form class="m-t" name="form" method="post" action="/finduser" role="form">
             <div>
-                <a >이메일</a><br>
-                <input type="email" name="eMail">
+                <a>이메일</a><br>
+                <input type="email" name="email">
             </div>
             <div style="text-align: center">
                 <div class="text-left">
@@ -35,20 +46,65 @@
     </div>
 </div>
 <script>
-    $('#find-btn').on('click',(e)=>{
+
+    var a1 = function() {
         const result = $.trim($("input[type=password]").val());
         const result2 = $.trim($("input[type=email]").val());
-        window.console.info(result+"+"+result2);
-        if (!result||!result2) {
-            $("#errorBox").text("다시한번 확인 해주세요.");
+        //window.console.info(result + "+" + result2);
+        if (!result || !result2) {
+            $(".loginerrormsg").text("다시한번 확인 해주세요.");
             return;
         }
-        if($("#password1").val() != $("#password2").val()){
-            $("#errorBox").text("비밀번호가 일치하지 않습니다.");
+        if ($("#password1").val() != $("#password2").val()) {
+            $(".loginerrormsg").text("비밀번호가 일치하지 않습니다.");
             return;
         }
         $(form).submit();
         $('#find-btn').off('click');
+    }
+
+    $('#find-btn').on('click', (e) => a1())
+    $('form[name = form]').on('keydown', (e) => {
+        if(enter()){
+            return;
+        }
+            a1();
+    })
+
+    $(document).on('keydown', '#upside', function (e) {
+        if(enter()){
+            return;
+        }
+        const resurt = $.trim($("input[type=text]").val());
+        var msg = $(".message");
+        if (!resurt) {
+            msg.text("이름과 번호를 입력해 주세요");
+            return;
+        }
+
+        var data = {
+            name: $("#name").val(),
+            phoneNum: $("#phoneNum").val()
+        }
+
+        $.ajax({
+            url: "/findMyEmail",
+            datatype: "json",
+            contentType: "application/json;charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (data) {
+                var email = $("input[name=email]");
+                if (data == null) {
+                    msg.text("데이터 값이 잘못되었습니다.");
+                    return;
+                }
+                email.val(data);
+                email.attr("readonly", true);
+                msg.text("불러왔을 것입니다.")
+
+            }
+        })
+
     })
 </script>
 </body>

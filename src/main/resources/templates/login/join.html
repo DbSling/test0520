@@ -15,9 +15,9 @@
         <div class="col-md-10">
             <div><input type="text" id="name" placeholder="이름"></div>
             <div><input type="text" id="phone"
-                        oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
-                        placeholder="전화번호 '-' 없이 입력해 주세요."></div>
-            <div><input type="text" id="eMail" placeholder="이메일"></div>
+                        oninput="this.value = this.value.replace(/[^0-9|.]/g, '').replace(/(\..*)\./g, '$1');"
+                        placeholder="전화번호를 입력해 주세요."></div>
+            <div><input type="text" id="email" placeholder="이메일"></div>
             <div class="text-left">
                 <input type="password" id="password1" placeholder="비밀번호">
                 <input type="password" id="password2" placeholder="비밀번호 확인">
@@ -97,23 +97,24 @@
     $("#join-btn").on('click', function () {
 
         var result = $.trim($("input[type=text]").val());
-        if (!result || $("#phone").val().length != 11 || $("#password1").val() != $("#password2").val()) {
+        if (!result || $("#phone").val().length == 11 || $("#password1").val() != $("#password2").val()) {
             $("#errorBox").text("다시한번 확인 해주세요.");
             return;
         }
        $("#join-btn").off('click');
         var data ={
             name: $("#name").val(),
-            phoneNum: $("#phone").val().substr(0, 3) + "-" + $("#phone").val().substr(3, 4) + "-" + $("#phone").val().substr(7, 4),
+            phoneNum: $("#phone").val(),
             password: $("#password1").val(),
-            eMail: $("#eMail").val(),
+            email: $("#email").val(),
             address: $("#sample6_address").val() + " // " + $("#sample6_detailAddress").val()
         };
-        window.console.info(data);
+       // window.console.info(data);
         $.post({
             url: "/saveUser",
             datatype: "json",
-            data: data,
+            contentType:"application/json",
+            data: JSON.stringify(data),
             success: function (data) {
                 alert(data);
                 if(data.includes("성공")) window.close();
